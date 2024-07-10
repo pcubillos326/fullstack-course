@@ -1,18 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import PersonsList from './components/PersonsList'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', phone: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', phone: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', phone: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', phone: '39-23-6423122', id: 4 }
-  ])
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
-  const [newPhone, setNewPhone] = useState('')
+  const [newNumber, setNewNumber] = useState('')
   const [filterByName, setFilterByName] = useState('')
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        const persons = response.data
+        setPersons(persons)
+      })
+  }, [])
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -23,7 +28,7 @@ const App = () => {
     const newPerson = {
       id: persons.length + 1,
       name: newName,
-      phone: newPhone
+      number: newNumber
     }
     setPersons(persons.concat(newPerson))
   }
@@ -33,9 +38,9 @@ const App = () => {
     setNewName(name)
   }
 
-  const handleNewPhone = (event) => {
-    const phone = event.target.value
-    setNewPhone(phone)
+  const handleNewNumber = (event) => {
+    const number = event.target.value
+    setNewNumber(number)
   }
 
   const filterPersons = filterByName 
@@ -49,9 +54,9 @@ const App = () => {
       <h3>Add a new</h3>
       <PersonForm 
         name={newName} 
-        phone={newPhone} 
+        number={newNumber} 
         handleName={handleNewName} 
-        handlePhone={handleNewPhone} 
+        handleNumber={handleNewNumber} 
         handleForm={handleSubmit} 
       />
       <h3>Numbers</h3>

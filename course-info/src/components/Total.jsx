@@ -1,7 +1,7 @@
 const Total = (props) => {
   return (
     <section>
-      <p>Number of exercises {props.parts.reduce((prev, curr) => prev + curr.exercises, 0)}</p>
+      <p><strong>Number of exercises {props.parts.reduce((prev, curr) => prev + curr.exercises, 0)}</strong></p>
     </section>
   )
 }
