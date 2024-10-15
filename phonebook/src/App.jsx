@@ -19,7 +19,8 @@ const App = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    const sameName = (person) => person.name.toLocaleLowerCase() === newName.toLocaleLowerCase()
+    const sameName = (person) =>
+      person.name.toLocaleLowerCase() === newName.toLocaleLowerCase()
     if (persons.some((person) => sameName(person))) {
       const shouldReplace = window.confirm(
         `${newName} is already added to phonebook, replace the old number with a new one?`
@@ -33,7 +34,9 @@ const App = () => {
       }
       personsService
         .updatePerson(updatedPerson)
-        .then((person) => setPersons(persons.map((p) => (p.id === person.id ? person : p))))
+        .then((person) =>
+          setPersons(persons.map((p) => (p.id === person.id ? person : p)))
+        )
     } else {
       const newPerson = {
         name: newName,
@@ -69,7 +72,9 @@ const App = () => {
       .deletePerson(person.id)
       .then((_person) => setPersons(persons.filter((p) => p.id !== _person.id)))
       .catch(() => {
-        setNotification(`Information of ${person.name} has already been deleted`)
+        setNotification(
+          `Information of ${person.name} has already been deleted`
+        )
         setNotificationType('error')
         setTimeout(() => {
           setNotification(null)
@@ -79,7 +84,9 @@ const App = () => {
   }
   const filterPersons = filterByName
     ? persons.filter((person) =>
-        person.name.toLocaleLowerCase().includes(filterByName.toLocaleLowerCase())
+        person.name
+          .toLocaleLowerCase()
+          .includes(filterByName.toLocaleLowerCase())
       )
     : persons
 
@@ -87,7 +94,10 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
       <Notification message={notification} type={notificationType} />
-      <Filter filter={filterByName} handleFilter={(e) => setFilterByName(e.target.value)} />
+      <Filter
+        filter={filterByName}
+        handleFilter={(e) => setFilterByName(e.target.value)}
+      />
       <h3>Add a new</h3>
       <PersonForm
         name={newName}
