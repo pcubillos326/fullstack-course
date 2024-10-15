@@ -70,7 +70,7 @@ const App = () => {
     }
     personsService
       .deletePerson(person.id)
-      .then((_person) => setPersons(persons.filter((p) => p.id !== _person.id)))
+      .then(() => setPersons(persons.filter((p) => p.id !== person.id)))
       .catch(() => {
         setNotification(
           `Information of ${person.name} has already been deleted`

@@ -1,9 +1,12 @@
+require('dotenv').config()
 const express = require('express')
 
 const app = express()
 
 const morgan = require('morgan')
 const cors = require('cors')
+
+const Person = require('./models/person')
 
 app.use(cors())
 
@@ -14,57 +17,67 @@ morgan.token('body', (req, res) => {
 })
 app.use(morgan(':method :url :status :response-time :body'))
 
-let phonebook = [
-  {
-    id: '1',
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: '2',
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: '3',
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: '4',
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-]
+app.get('/info', async (request, response) => {
+  const count = await Person.find({})
 
-app.get('/info', (request, response) => {
-  const count = phonebook.length
   response.send(
-    `<p>Phonebook has info for ${count} people<br />${new Date()}</p>`
+    `<p>Phonebook has info for ${
+      count.length || 0
+    } people<br />${new Date()}</p>`
   )
 })
 
-app.get('/api/persons', (request, response) => {
-  response.json(phonebook)
-})
-
-app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = phonebook.find((person) => person.id === id)
-  if (!person) {
-    return response.status(404).end()
+app.get('/api/persons', async (request, response) => {
+  try {
+    const persons = await Person.find({})
+    response.json(persons)
+  } catch (error) {
+    next(error)
   }
-  response.json(person)
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', async (request, response) => {
   const { id } = request.params
-  phonebook = phonebook.filter((person) => person.id !== id)
-
-  response.status(204).end()
+  try {
+    const person = await Person.findById(id)
+    if (!person) {
+      return response.status(404).end()
+    }
+    response.json(person)
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.post('/api/persons', (request, response) => {
+app.delete('/api/persons/:id', async (request, response, next) => {
+  const { id } = request.params
+  try {
+    const person = await Person.findByIdAndDelete(id)
+    console.log('a', person)
+    response.status(204).json(person)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.put('/api/persons/:id', async (request, response) => {
+  const { id } = request.params
+  const { name, number } = request.body
+  try {
+    const person = {
+      name,
+      number,
+    }
+
+    const updated = await Person.findByIdAndUpdate(id, person, { new: true })
+
+    response.json(updated)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/api/persons', async (request, response) => {
   const { body } = request
   const { name, number } = body
 
@@ -74,22 +87,31 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  if (phonebook.find((person) => person.name === name)) {
+  try {
+    const person = new Person({
+      name,
+      number,
+    })
+
+    person.save().then(() => {
+      response.json(person)
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error)
+  if (error.name === 'CastError') {
     return response.status(400).json({
-      error: 'name already exists',
+      error: 'malformed Id',
     })
   }
+  next(error)
+}
 
-  const newId = Math.floor(Math.random() * 1560).toString()
-  const person = {
-    id: newId,
-    name,
-    number,
-  }
-  phonebook = phonebook.concat(person)
-
-  response.json(person)
-})
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
